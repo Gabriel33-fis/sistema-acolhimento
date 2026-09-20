@@ -1,4 +1,13 @@
-import type { CriancaEntrada, CriancaResumo, CriancaDetalhada, RespostaAdmissao } from '../types/crianca';
+import type { 
+  CriancaEntrada, 
+  CriancaResumo, 
+  CriancaDetalhada, 
+  RespostaAdmissao, 
+  DesligamentoEntrada,
+  EvolucaoEntrada,
+  EvolucaoItem,
+  UtilizadorItem
+} from '../types/crianca';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -22,7 +31,10 @@ export function obterToken(): string | null {
 
 export function salvarSessao(dados: RespostaLogin): void {
   localStorage.setItem('token_acolhimento', dados.access_token);
-  localStorage.setItem('usuario_acolhimento', JSON.stringify({ nome: dados.nome, perfil: dados.perfil }));
+  localStorage.setItem('usuario_acolhimento', JSON.stringify({ 
+    nome: dados.nome, 
+    perfil: (dados.perfil || '').toUpperCase().trim() 
+  }));
 }
 
 export function limparSessao(): void {
@@ -32,7 +44,16 @@ export function limparSessao(): void {
 
 export function obterUsuarioSalvo(): { nome: string; perfil: string } | null {
   const data = localStorage.getItem('usuario_acolhimento');
-  return data ? JSON.parse(data) : null;
+  if (!data) return null;
+  try {
+    const parsed = JSON.parse(data);
+    return {
+      nome: parsed.nome || 'Operador',
+      perfil: (parsed.perfil || '').toUpperCase().trim()
+    };
+  } catch {
+    return null;
+  }
 }
 
 function obterCabecalhosAutenticados(): HeadersInit {
@@ -74,6 +95,41 @@ export async function cadastrarUsuario(dados: NovoUsuarioEntrada): Promise<{ men
     }
     const erro = await resposta.json().catch(() => ({}));
     throw new Error(erro.detail || 'Erro ao registar utilizador.');
+  }
+
+  return resposta.json();
+}
+
+export async function listarUtilizadores(): Promise<UtilizadorItem[]> {
+  const resposta = await fetch(`${API_BASE_URL}/auth/utilizadores`, {
+    headers: obterCabecalhosAutenticados(),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    throw new Error('Erro ao listar equipe de utilizadores.');
+  }
+
+  return resposta.json();
+}
+
+export async function alterarPerfilUtilizador(id: string, perfil: 'COORDENADOR' | 'OPERADOR'): Promise<{ mensagem: string }> {
+  const resposta = await fetch(`${API_BASE_URL}/auth/utilizadores/${id}/perfil`, {
+    method: 'PATCH',
+    headers: obterCabecalhosAutenticados(),
+    body: JSON.stringify({ perfil }),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    const erro = await resposta.json().catch(() => ({}));
+    throw new Error(erro.detail || 'Erro ao alterar perfil de utilizador.');
   }
 
   return resposta.json();
@@ -125,6 +181,79 @@ export async function obterCriancaPorId(id: string): Promise<CriancaDetalhada> {
       throw new Error('SessaoExpirada');
     }
     throw new Error('Erro ao obter dados do acolhido');
+  }
+
+  return resposta.json();
+}
+
+export async function atualizarCrianca(id: string, dados: CriancaEntrada): Promise<{ mensagem: string }> {
+  const resposta = await fetch(`${API_BASE_URL}/criancas/${id}`, {
+    method: 'PUT',
+    headers: obterCabecalhosAutenticados(),
+    body: JSON.stringify(dados),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    const erro = await resposta.json().catch(() => ({}));
+    throw new Error(erro.detail || 'Erro ao atualizar dados do acolhido.');
+  }
+
+  return resposta.json();
+}
+
+export async function desligarCrianca(id: string, dados: DesligamentoEntrada): Promise<{ mensagem: string }> {
+  const resposta = await fetch(`${API_BASE_URL}/criancas/${id}/desligamento`, {
+    method: 'POST',
+    headers: obterCabecalhosAutenticados(),
+    body: JSON.stringify(dados),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    const erro = await resposta.json().catch(() => ({}));
+    throw new Error(erro.detail || 'Erro ao registrar desligamento.');
+  }
+
+  return resposta.json();
+}
+
+export async function adicionarEvolucao(criancaId: string, dados: EvolucaoEntrada): Promise<{ id: string; mensagem: string }> {
+  const resposta = await fetch(`${API_BASE_URL}/criancas/${criancaId}/evolucoes`, {
+    method: 'POST',
+    headers: obterCabecalhosAutenticados(),
+    body: JSON.stringify(dados),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    const erro = await resposta.json().catch(() => ({}));
+    throw new Error(erro.detail || 'Erro ao registrar anotação no prontuário.');
+  }
+
+  return resposta.json();
+}
+
+export async function listarEvolucoes(criancaId: string): Promise<EvolucaoItem[]> {
+  const resposta = await fetch(`${API_BASE_URL}/criancas/${criancaId}/evolucoes`, {
+    headers: obterCabecalhosAutenticados(),
+  });
+
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      limparSessao();
+      throw new Error('SessaoExpirada');
+    }
+    throw new Error('Erro ao carregar evoluções.');
   }
 
   return resposta.json();

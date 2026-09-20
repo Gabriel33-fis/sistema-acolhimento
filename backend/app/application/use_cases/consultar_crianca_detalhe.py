@@ -1,8 +1,8 @@
 from typing import Optional
 from dataclasses import dataclass
 from datetime import date
-from app.application.interfaces.crianca_repository import ICriancaRepository
-from app.application.interfaces.audit_logger import IAuditLogger
+from app.application.interfaces.crianca_repository import CriancaRepository
+from app.application.interfaces.audit_logger import AuditLogger
 from app.infrastructure.security.crypto_service import CryptoService
 
 @dataclass
@@ -12,44 +12,33 @@ class CriancaDetalheOutput:
     data_nascimento: date
     data_admissao: date
     status_acolhimento: str
-    alergias_decifradas: Optional[str]
+    alergias_decifradas: Optional[str] = None
+    data_desligamento: Optional[date] = None
+    motivo_desligamento: Optional[str] = None
+    destino_desligamento: Optional[str] = None
 
 class ConsultarCriancaDetalheUseCase:
-    def __init__(
-        self,
-        crianca_repository: ICriancaRepository,
-        audit_logger: IAuditLogger,
-        crypto_service: CryptoService
-    ):
-        self._repo = crianca_repository
-        self._audit = audit_logger
-        self._crypto = crypto_service
+    def __init__(self, repository: CriancaRepository, audit_logger: AuditLogger, crypto_service: CryptoService):
+        self.repository = repository
+        self.audit_logger = audit_logger
+        self.crypto_service = crypto_service
 
     def execute(self, crianca_id: str, operador_id: str, ip_origem: str) -> Optional[CriancaDetalheOutput]:
-        # Busca direta no banco
-        crianca = self._repo.buscar_por_id(crianca_id)
+        crianca = self.repository.obter_por_id(crianca_id)
         if not crianca:
             return None
 
-        # Busca modelo ORM direto para pegar o campo cifrado
-        from app.infrastructure.database.models import CriancaModel
-        session = getattr(self._repo, "_session", None)
-        alergias_texto = None
+        alergias = None
+        if crianca.alergias_cifradas:
+            alergias = self.crypto_service.decifrar(crianca.alergias_cifradas)
 
-        if session:
-            model = session.query(CriancaModel).filter(CriancaModel.id == crianca_id).first()
-            if model and model.alergias_cifradas:
-                try:
-                    alergias_texto = self._crypto.decrypt(model.alergias_cifradas)
-                except Exception:
-                    alergias_texto = "Erro ao decifrar registro médico."
-
-        # Auditoria de acesso aos dados sensíveis
-        self._audit.registar_evento(
+        self.audit_logger.registrar(
             operador_id=operador_id,
-            acao="CONSULTA_DETALHE_SAUDE",
-            recurso_id=crianca_id,
-            ip=ip_origem
+            acao="CONSULTA_DETALHE_PRONTUARIO",
+            recurso="CRIANCA",
+            recurso_id=crianca.id,
+            ip_origem=ip_origem,
+            detalhes="Consulta ao prontuário médico sensível (dados decifrados)."
         )
 
         return CriancaDetalheOutput(
@@ -58,5 +47,8 @@ class ConsultarCriancaDetalheUseCase:
             data_nascimento=crianca.data_nascimento,
             data_admissao=crianca.data_admissao,
             status_acolhimento=crianca.status_acolhimento,
-            alergias_decifradas=alergias_texto
+            alergias_decifradas=alergias,
+            data_desligamento=crianca.data_desligamento,
+            motivo_desligamento=crianca.motivo_desligamento,
+            destino_desligamento=crianca.destino_desligamento
         )
