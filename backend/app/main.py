@@ -14,19 +14,17 @@ async def lifespan(app: FastAPI):
     # 1. Cria todas as tabelas no SQLite se não existirem
     Base.metadata.create_all(bind=engine)
     
-    # 2. Executa a rotina de seed de usuários iniciais
+    # 2. Executa a rotina de seed de utilizadores
     try:
-        if hasattr(seed_users, "seed"):
+        if hasattr(seed_users, "criar_utilizadores"):
+            seed_users.criar_utilizadores()
+        elif hasattr(seed_users, "seed"):
             seed_users.seed()
-        elif hasattr(seed_users, "main"):
-            seed_users.main()
-        elif hasattr(seed_users, "seed_users"):
-            seed_users.seed_users()
         print("[DATABASE] Inicialização de tabelas e seed concluída com sucesso.")
     except Exception as exc:
         print(f"[DATABASE] Aviso durante a execução do seed: {exc}")
         
-    yield  # API em execução atendendo requisições
+    yield
 
 
 app = FastAPI(
