@@ -6,7 +6,7 @@ de login do frontend, para que a demonstração e o relatório citem a mesma ver
 import os
 
 # Versão declarada no relatório. Altere somente aqui (ou via variável APP_VERSION).
-VERSAO_PADRAO = "1.0.0-beta"
+VERSAO_PADRAO = "1.0.0-RC"
 
 APP_VERSION = os.getenv("APP_VERSION", VERSAO_PADRAO)
 
