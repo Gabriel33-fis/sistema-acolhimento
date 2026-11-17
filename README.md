@@ -14,6 +14,17 @@ O **Sistema de Acolhimento** é uma solução para gestão e acompanhamento de c
 
 ---
 
+## 🧪 Versão e Status de Validação
+
+- **Versão atual:** `1.0.0-beta`. A versão e o commit em execução aparecem em `/health`, em `/api/v1/versao` e no selo da tela de login, para que a demonstração seja feita sempre na mesma versão citada no relatório.
+- **Simulações com dados fictícios:** realizadas. Todos os registros de demonstração usam o prefixo `[FICTÍCIO]`; nenhum dado real de crianças ou adolescentes foi utilizado.
+- **Testes automatizados:** incluem o fluxo de criação e consulta de um registro fictício com verificação da versão (`backend/tests/integration/test_api_fluxo.py`).
+- **Piloto de campo:** **planejado**, ainda não executado. Esta seção será atualizada somente quando houver registros da execução.
+
+Roteiro da demonstração: [`docs/ROTEIRO_DEMONSTRACAO.md`](docs/ROTEIRO_DEMONSTRACAO.md) · Script: `python scripts/demo_registro_ficticio.py <URL_DA_API>`
+
+---
+
 ## 🏛️ Arquitetura do Sistema
 
 O backend adota os princípios de **Clean Architecture**, isolando as regras de negócio de frameworks e detalhes de persistência:

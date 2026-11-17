@@ -116,3 +116,31 @@ def test_fluxo_completo_acolhimento():
     # 7. Verificar estado final
     resp_final = client.get(f"/api/v1/criancas/{crianca_id}", headers=headers_coord)
     assert resp_final.json()["status_acolhimento"] == "DESACOLHIDO"
+
+
+def test_versao_identificada_e_registro_ficticio_criado_e_consultado():
+    """Roteiro da demonstração: mesma versão do início ao fim, criação e consulta."""
+    from app.version import APP_VERSION
+
+    v_antes = client.get("/health").json()
+    assert v_antes["versao"] == APP_VERSION
+    assert client.get("/api/v1/versao").json()["versao"] == APP_VERSION
+
+    headers = {"Authorization": f"Bearer {obter_token('admin@teste.org', 'senha123')}"}
+    registro = {
+        "nome_completo": "[FICTÍCIO] Criança Demonstração",
+        "data_nascimento": "2015-03-10",
+        "alergias": "[FICTÍCIO] Alergia a amendoim",
+    }
+    resp = client.post("/api/v1/criancas/", json=registro, headers=headers)
+    assert resp.status_code == 201
+    crianca_id = resp.json()["id"]
+
+    lista = client.get("/api/v1/criancas/?busca=FICTÍCIO", headers=headers).json()
+    assert any(item["id"] == crianca_id for item in lista)
+
+    detalhe = client.get(f"/api/v1/criancas/{crianca_id}", headers=headers).json()
+    assert detalhe["nome_completo"] == registro["nome_completo"]
+    assert detalhe["alergias_decifradas"] == registro["alergias"]
+
+    assert client.get("/health").json() == v_antes

@@ -7,6 +7,7 @@ import app.infrastructure.database.models  # Garante o registro de todos os mode
 import app.infrastructure.database.seed_users as seed_users
 
 from app.presentation.api.routers import auth, criancas
+from app.version import APP_VERSION, info_versao
 
 
 @asynccontextmanager
@@ -30,7 +31,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Sistema de Acolhimento Institucional",
     description="API com Arquitetura Limpa, Segurança e Criptografia AES-GCM",
-    version="1.0.0",
+    version=APP_VERSION,
     lifespan=lifespan
 )
 
@@ -44,7 +45,13 @@ app.add_middleware(
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {"status": "ok", "mensagem": "Sistema operacional"}
+    return {"status": "ok", "mensagem": "Sistema operacional", **info_versao()}
+
+
+@app.get("/api/v1/versao", tags=["Health"])
+def versao():
+    """Versão em execução (mesma informação exibida na tela de login)."""
+    return info_versao()
 
 app.include_router(auth.router)
 app.include_router(criancas.router)

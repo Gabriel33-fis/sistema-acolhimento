@@ -258,3 +258,19 @@ export async function listarEvolucoes(criancaId: string): Promise<EvolucaoItem[]
 
   return resposta.json();
 }
+
+export interface InfoVersao {
+  versao: string;
+  commit: string;
+  ambiente: string;
+}
+
+export async function obterVersao(): Promise<InfoVersao | null> {
+  try {
+    const resposta = await fetch(`${API_BASE_URL}/versao`);
+    if (!resposta.ok) return null;
+    return resposta.json();
+  } catch {
+    return null;
+  }
+}

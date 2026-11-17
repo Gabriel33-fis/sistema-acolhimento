@@ -37,8 +37,10 @@ import {
   alterarPerfilUtilizador,
   desligarCrianca,
   listarEvolucoes,
-  adicionarEvolucao
+  adicionarEvolucao,
+  obterVersao
 } from './services/api';
+import type { InfoVersao } from './services/api';
 import type { 
   CriancaEntrada, 
   CriancaResumo, 
@@ -61,6 +63,13 @@ export default function App() {
   const [usuario, setUsuario] = useState(obterUsuarioSalvo());
 
   const perfilNormalizado = (usuario?.perfil || '').toUpperCase().trim();
+
+  // Versão em execução (vem da API, a mesma de /health)
+  const [infoVersao, setInfoVersao] = useState<InfoVersao | null>(null);
+  useEffect(() => {
+    obterVersao().then(setInfoVersao);
+  }, []);
+  const rotuloVersao = infoVersao ? `v${infoVersao.versao} (${infoVersao.commit})` : 'versão indisponível';
 
   // Login
   const [loginEmail, setLoginEmail] = useState('admin@instituicao.org');
@@ -367,7 +376,7 @@ export default function App() {
               <span className="text-xl font-bold tracking-tight">Acolhimento<span className="font-light">Gestão</span></span>
             </div>
             <span className="text-xs bg-[#005f77] px-2.5 py-1 rounded font-semibold flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5" /> v1.0
+              <Lock className="w-3.5 h-3.5" /> {rotuloVersao}
             </span>
           </div>
 
@@ -539,7 +548,9 @@ export default function App() {
 
           <div className="p-4 border-t border-slate-100 text-[11px] text-slate-400">
             Fatec Shunji Nishimura<br />
-            Projeto Integrador IV
+            Projeto Integrador IV<br />
+            <span title="Versão em execução">{rotuloVersao}</span><br />
+            <span className="text-amber-600">Dados fictícios</span>
           </div>
         </aside>
 
