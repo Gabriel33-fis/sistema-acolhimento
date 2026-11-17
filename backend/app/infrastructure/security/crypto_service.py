@@ -28,26 +28,37 @@ class CryptoService:
         return f"{nonce_b64}:{cifrado_b64}"
 
     def decifrar(self, dado_cifrado: str) -> str:
+        """Decifra um valor no formato "nonce_b64:cifrado_b64".
+
+        Se o valor estiver nesse formato e a verificação de integridade do
+        AES-GCM falhar (chave errada ou dado adulterado), lança ValueError em
+        vez de devolver o texto cifrado como se fosse o dado original.
+        Valores fora desse formato são tratados como registros legados em texto.
+        """
         if not dado_cifrado:
             return ""
-        
-        try:
-            if ":" in dado_cifrado:
+
+        if ":" in dado_cifrado:
+            try:
                 nonce_b64, cifrado_b64 = dado_cifrado.split(":", 1)
                 nonce = self._corrigir_padding_b64(nonce_b64)
                 cifrado = self._corrigir_padding_b64(cifrado_b64)
-            else:
-                dados_bytes = self._corrigir_padding_b64(dado_cifrado)
-                if len(dados_bytes) < 13:
-                    # Dado não é um payload cifrado válido (ex: texto curto antigo)
-                    return dado_cifrado
-                nonce = dados_bytes[:12]
-                cifrado = dados_bytes[12:]
+                return self.aesgcm.decrypt(nonce, cifrado, None).decode("utf-8")
+            except Exception as exc:
+                raise ValueError(
+                    "Falha de integridade: o dado não pôde ser decifrado (chave incorreta ou dado adulterado)."
+                ) from exc
 
-            return self.aesgcm.decrypt(nonce, cifrado, None).decode("utf-8")
+        try:
+            dados_bytes = self._corrigir_padding_b64(dado_cifrado)
         except Exception:
-            # Fallback seguro: se falhar a decifragem por ser registro legado, retorna como texto
-            return dado_cifrado
+            return dado_cifrado  # Registro legado em texto
+        if len(dados_bytes) < 13:
+            return dado_cifrado  # Registro legado em texto
+        try:
+            return self.aesgcm.decrypt(dados_bytes[:12], dados_bytes[12:], None).decode("utf-8")
+        except Exception:
+            return dado_cifrado  # Registro legado em texto
 
     # Aliases
     cifrar_dado = cifrar

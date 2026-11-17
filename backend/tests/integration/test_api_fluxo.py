@@ -1,3 +1,4 @@
+from datetime import date
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -105,7 +106,7 @@ def test_fluxo_completo_acolhimento():
     resp_deslig = client.post(
         f"/api/v1/criancas/{crianca_id}/desligamento",
         json={
-            "data_desligamento": "2026-09-20",
+            "data_desligamento": date.today().isoformat(),
             "motivo": "Guarda definitiva deferida",
             "destino": "Genitora"
         },
@@ -144,3 +145,36 @@ def test_versao_identificada_e_registro_ficticio_criado_e_consultado():
     assert detalhe["alergias_decifradas"] == registro["alergias"]
 
     assert client.get("/health").json() == v_antes
+
+
+def test_listagem_de_evolucoes_por_perfil():
+    """Defeito encontrado em 17/11/2026: listagem de evoluções retornava 500."""
+    h_coord = {"Authorization": f"Bearer {obter_token('admin@teste.org', 'senha123')}"}
+    h_oper = {"Authorization": f"Bearer {obter_token('operador@teste.org', 'senha123')}"}
+    cid = client.post("/api/v1/criancas/", json={"nome_completo": "[FICTÍCIO] Evolução",
+                      "data_nascimento": "2015-01-01"}, headers=h_coord).json()["id"]
+    client.post(f"/api/v1/criancas/{cid}/evolucoes", json={"tipo": "MEDICA", "texto": "Consulta fictícia"}, headers=h_coord)
+    client.post(f"/api/v1/criancas/{cid}/evolucoes", json={"tipo": "PEDAGOGICA", "texto": "Leitura em dia"}, headers=h_oper)
+
+    r_coord = client.get(f"/api/v1/criancas/{cid}/evolucoes", headers=h_coord)
+    r_oper = client.get(f"/api/v1/criancas/{cid}/evolucoes", headers=h_oper)
+    assert r_coord.status_code == 200 and r_oper.status_code == 200
+    medica_coord = next(e for e in r_coord.json() if e["tipo"] == "MEDICA")
+    medica_oper = next(e for e in r_oper.json() if e["tipo"] == "MEDICA")
+    assert medica_coord["texto"] == "Consulta fictícia"
+    assert "Consulta fictícia" not in medica_oper["texto"]
+    assert any(e["texto"] == "Leitura em dia" for e in r_oper.json())
+
+
+def test_acesso_negado_e_registrado_na_auditoria():
+    from app.infrastructure.database.models import AuditLogModel
+    h_coord = {"Authorization": f"Bearer {obter_token('admin@teste.org', 'senha123')}"}
+    h_oper = {"Authorization": f"Bearer {obter_token('operador@teste.org', 'senha123')}"}
+    cid = client.post("/api/v1/criancas/", json={"nome_completo": "[FICTÍCIO] Auditoria",
+                      "data_nascimento": "2015-01-01"}, headers=h_coord).json()["id"]
+    assert client.get(f"/api/v1/criancas/{cid}", headers=h_oper).status_code == 403
+    db = TestingSessionLocal()
+    negados = db.query(AuditLogModel).filter(AuditLogModel.acao == "ACESSO_NEGADO",
+                                             AuditLogModel.recurso_id == cid).all()
+    db.close()
+    assert len(negados) == 1 and negados[0].operador_id == "oper-01"

@@ -26,3 +26,16 @@ def test_deve_falhar_ao_tentar_decifrar_com_chave_invalida():
     
     with pytest.raises(Exception):
         servico_b.decrypt(texto_cifrado)
+
+
+def test_dado_adulterado_e_detectado():
+    servico = CryptoService(key_hex=os.urandom(32).hex())
+    nonce, cifrado = servico.encrypt("Alergia a dipirona").split(":", 1)
+    adulterado = nonce + ":" + ("A" if cifrado[0] != "A" else "B") + cifrado[1:]
+    with pytest.raises(ValueError):
+        servico.decrypt(adulterado)
+
+
+def test_registro_legado_em_texto_continua_legivel():
+    servico = CryptoService(key_hex=os.urandom(32).hex())
+    assert servico.decrypt("Sem alergias") == "Sem alergias"

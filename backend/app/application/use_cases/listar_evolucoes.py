@@ -26,11 +26,14 @@ class ListarEvolucoesUseCase:
 
         for r in registros:
             tipo = r["tipo"]
-            conteudo_bruto = r["texto_ou_cifrado"]
+            conteudo_bruto = r.get("texto_banco", r.get("texto_ou_cifrado"))
 
             if tipo == "MEDICA":
                 if eh_coordenador:
-                    texto = self.crypto_service.decifrar(conteudo_bruto)
+                    try:
+                        texto = self.crypto_service.decifrar(conteudo_bruto)
+                    except ValueError:
+                        texto = "[FALHA DE INTEGRIDADE: o dado não pôde ser decifrado]"
                 else:
                     texto = "[CONTEÚDO SIGILOSO: Acesso restrito a profissionais médicos ou à coordenação]"
                 sigilosa = True

@@ -30,7 +30,10 @@ class ConsultarCriancaDetalheUseCase:
 
         alergias = None
         if crianca.alergias_cifradas:
-            alergias = self.crypto_service.decifrar(crianca.alergias_cifradas)
+            try:
+                alergias = self.crypto_service.decifrar(crianca.alergias_cifradas)
+            except ValueError:
+                alergias = "[FALHA DE INTEGRIDADE: o dado não pôde ser decifrado]"
 
         self.audit_logger.registrar(
             operador_id=operador_id,

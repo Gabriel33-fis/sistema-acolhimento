@@ -1,0 +1,126 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- /tmp/venv/bin/python
+rootdir: /tmp/rc100/backend
+plugins: anyio-4.16.0
+collecting ... collected 21 items
+
+tests/integration/test_api_criancas.py::test_health_check PASSED         [  4%]
+tests/integration/test_api_criancas.py::test_deve_registar_crianca_via_api PASSED [  9%]
+tests/integration/test_api_criancas.py::test_deve_rejeitar_nome_invalido_via_api PASSED [ 14%]
+tests/integration/test_api_fluxo.py::test_fluxo_completo_acolhimento FAILED [ 19%]
+tests/integration/test_api_fluxo.py::test_versao_identificada_e_registro_ficticio_criado_e_consultado PASSED [ 23%]
+tests/integration/test_repositorio_sql.py::test_deve_persistir_e_recuperar_crianca PASSED [ 28%]
+tests/integration/test_repositorio_sql.py::test_deve_registar_evento_de_auditoria PASSED [ 33%]
+tests/unit/test_admitir_crianca_use_case.py::test_deve_admitir_crianca_e_registar_auditoria PASSED [ 38%]
+tests/unit/test_crianca.py::test_deve_criar_crianca_com_dados_validos PASSED [ 42%]
+tests/unit/test_crianca.py::test_deve_rejeitar_nome_com_menos_de_dois_caracteres PASSED [ 47%]
+tests/unit/test_crianca.py::test_deve_rejeitar_data_de_nascimento_no_futuro PASSED [ 52%]
+tests/unit/test_crypto.py::test_cifragem_e_decifragem_sucesso PASSED     [ 57%]
+tests/unit/test_crypto.py::test_decifragem_com_chave_ou_dado_corrompido_falha FAILED [ 61%]
+tests/unit/test_crypto_service.py::test_deve_cifrar_e_decifrar_texto_corretamente PASSED [ 66%]
+tests/unit/test_crypto_service.py::test_deve_falhar_ao_tentar_decifrar_com_chave_invalida FAILED [ 71%]
+tests/unit/test_domain.py::test_desacolhimento_com_sucesso PASSED        [ 76%]
+tests/unit/test_domain.py::test_desacolhimento_com_data_anterior_a_admissao_deve_falhar PASSED [ 80%]
+tests/unit/test_domain.py::test_desacolhimento_de_acolhido_ja_desligado_deve_falhar PASSED [ 85%]
+tests/unit/test_domain.py::test_atualizar_dados_validos PASSED           [ 90%]
+tests/unit/test_domain.py::test_criar_evolucao_com_tipo_invalido_deve_falhar PASSED [ 95%]
+tests/unit/test_domain.py::test_criar_evolucao_com_texto_curto_deve_falhar PASSED [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_fluxo_completo_acolhimento ________________________
+
+    def test_fluxo_completo_acolhimento():
+        token_coord = obter_token("admin@teste.org", "senha123")
+        headers_coord = {"Authorization": f"Bearer {token_coord}"}
+    
+        token_oper = obter_token("operador@teste.org", "senha123")
+        headers_oper = {"Authorization": f"Bearer {token_oper}"}
+    
+        # 1. Admitir uma criança
+        payload_admissao = {
+            "nome_completo": "Crianca Teste Integracao",
+            "data_nascimento": "2016-04-10",
+            "alergias": "Intolerância à lactose"
+        }
+        resp_adm = client.post("/api/v1/criancas/", json=payload_admissao, headers=headers_coord)
+        assert resp_adm.status_code == 201
+        crianca_id = resp_adm.json()["id"]
+    
+        # 2. Listar crianças
+        resp_list = client.get("/api/v1/criancas/", headers=headers_oper)
+        assert resp_list.status_code == 200
+        assert any(c["id"] == crianca_id for c in resp_list.json())
+    
+        # 3. RBAC: Operador NÃO acessa prontuário confidencial (403 Forbidden)
+        resp_det_oper = client.get(f"/api/v1/criancas/{crianca_id}", headers=headers_oper)
+        assert resp_det_oper.status_code == 403
+    
+        # 4. Coordenador acessa e decifra o prontuário
+        resp_det_coord = client.get(f"/api/v1/criancas/{crianca_id}", headers=headers_coord)
+        assert resp_det_coord.status_code == 200
+        assert resp_det_coord.json()["alergias_decifradas"] == "Intolerância à lactose"
+    
+        # 5. Adicionar evolução médica confidencial
+        resp_ev = client.post(
+            f"/api/v1/criancas/{crianca_id}/evolucoes",
+            json={"tipo": "MEDICA", "texto": "Exame cardiológico normal."},
+            headers=headers_coord
+        )
+        assert resp_ev.status_code == 201
+    
+        # 6. Desligamento pelo coordenador
+        resp_deslig = client.post(
+            f"/api/v1/criancas/{crianca_id}/desligamento",
+            json={
+                "data_desligamento": "2026-09-20",
+                "motivo": "Guarda definitiva deferida",
+                "destino": "Genitora"
+            },
+            headers=headers_coord
+        )
+>       assert resp_deslig.status_code == 200
+E       assert 400 == 200
+E        +  where 400 = <Response [400 Bad Request]>.status_code
+
+tests/integration/test_api_fluxo.py:114: AssertionError
+______________ test_decifragem_com_chave_ou_dado_corrompido_falha ______________
+
+    def test_decifragem_com_chave_ou_dado_corrompido_falha():
+        key_hex = "00" * 32
+        service = CryptoService(key_hex=key_hex)
+        cifrado = service.cifrar("Dado confidencial")
+    
+        service_chave_diferente = CryptoService(key_hex="11" * 32)
+>       with pytest.raises(Exception):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE Exception
+
+tests/unit/test_crypto.py:22: Failed
+____________ test_deve_falhar_ao_tentar_decifrar_com_chave_invalida ____________
+
+    def test_deve_falhar_ao_tentar_decifrar_com_chave_invalida():
+        chave_a = os.urandom(32).hex()
+        chave_b = os.urandom(32).hex()
+    
+        servico_a = CryptoService(key_hex=chave_a)
+        servico_b = CryptoService(key_hex=chave_b)
+    
+        texto_cifrado = servico_a.encrypt("Dado sensível")
+    
+>       with pytest.raises(Exception):
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE Exception
+
+tests/unit/test_crypto_service.py:27: Failed
+=============================== warnings summary ===============================
+../../venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /tmp/venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/claude/sistema-acolhimento/docs/evidencias/2026-11-17/pytest_v1.0.0-RC.xml -
+=========================== short test summary info ============================
+FAILED tests/integration/test_api_fluxo.py::test_fluxo_completo_acolhimento
+FAILED tests/unit/test_crypto.py::test_decifragem_com_chave_ou_dado_corrompido_falha
+FAILED tests/unit/test_crypto_service.py::test_deve_falhar_ao_tentar_decifrar_com_chave_invalida
+=================== 3 failed, 18 passed, 1 warning in 2.69s ====================

@@ -1,0 +1,42 @@
+{
+  "api": "http://localhost:8000",
+  "inicio_utc": "2026-11-17T12:23:13+00:00",
+  "versao_antes": {
+    "status": "ok",
+    "mensagem": "Sistema operacional",
+    "versao": "1.0.1-RC",
+    "commit": "local",
+    "ambiente": "demonstracao-dados-ficticios"
+  },
+  "registro_enviado": {
+    "nome_completo": "[FICTÍCIO] Criança Demonstração 20261117-092313",
+    "data_nascimento": "2015-03-10",
+    "alergias": "[FICTÍCIO] Alergia a amendoim (dado de teste)"
+  },
+  "id_criado": "0858c5a4-5c49-4359-ad47-04029df833ff",
+  "criado_utc": "2026-11-17T12:23:13+00:00",
+  "consultado_utc": "2026-11-17T12:23:13+00:00",
+  "detalhe_consultado": {
+    "id": "0858c5a4-5c49-4359-ad47-04029df833ff",
+    "nome_completo": "[FICTÍCIO] Criança Demonstração 20261117-092313",
+    "data_nascimento": "2015-03-10",
+    "data_admissao": "2026-11-17",
+    "status_acolhimento": "ACOLHIDO",
+    "alergias_decifradas": "[FICTÍCIO] Alergia a amendoim (dado de teste)",
+    "data_desligamento": null,
+    "motivo_desligamento": null,
+    "destino_desligamento": null
+  },
+  "versao_depois": {
+    "status": "ok",
+    "mensagem": "Sistema operacional",
+    "versao": "1.0.1-RC",
+    "commit": "local",
+    "ambiente": "demonstracao-dados-ficticios"
+  },
+  "resultado": {
+    "encontrado_na_listagem": true,
+    "dados_conferem": true,
+    "mesma_versao_do_inicio_ao_fim": true
+  }
+}

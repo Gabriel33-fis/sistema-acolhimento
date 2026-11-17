@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.2.0, pluggy-1.7.0 -- /tmp/venv/bin/python
+rootdir: /home/claude/sistema-acolhimento/backend
+plugins: anyio-4.16.0
+collecting ... collected 25 items
+
+tests/integration/test_api_criancas.py::test_health_check PASSED         [  4%]
+tests/integration/test_api_criancas.py::test_deve_registar_crianca_via_api PASSED [  8%]
+tests/integration/test_api_criancas.py::test_deve_rejeitar_nome_invalido_via_api PASSED [ 12%]
+tests/integration/test_api_fluxo.py::test_fluxo_completo_acolhimento PASSED [ 16%]
+tests/integration/test_api_fluxo.py::test_versao_identificada_e_registro_ficticio_criado_e_consultado PASSED [ 20%]
+tests/integration/test_api_fluxo.py::test_listagem_de_evolucoes_por_perfil PASSED [ 24%]
+tests/integration/test_api_fluxo.py::test_acesso_negado_e_registrado_na_auditoria PASSED [ 28%]
+tests/integration/test_repositorio_sql.py::test_deve_persistir_e_recuperar_crianca PASSED [ 32%]
+tests/integration/test_repositorio_sql.py::test_deve_registar_evento_de_auditoria PASSED [ 36%]
+tests/unit/test_admitir_crianca_use_case.py::test_deve_admitir_crianca_e_registar_auditoria PASSED [ 40%]
+tests/unit/test_crianca.py::test_deve_criar_crianca_com_dados_validos PASSED [ 44%]
+tests/unit/test_crianca.py::test_deve_rejeitar_nome_com_menos_de_dois_caracteres PASSED [ 48%]
+tests/unit/test_crianca.py::test_deve_rejeitar_data_de_nascimento_no_futuro PASSED [ 52%]
+tests/unit/test_crypto.py::test_cifragem_e_decifragem_sucesso PASSED     [ 56%]
+tests/unit/test_crypto.py::test_decifragem_com_chave_ou_dado_corrompido_falha PASSED [ 60%]
+tests/unit/test_crypto_service.py::test_deve_cifrar_e_decifrar_texto_corretamente PASSED [ 64%]
+tests/unit/test_crypto_service.py::test_deve_falhar_ao_tentar_decifrar_com_chave_invalida PASSED [ 68%]
+tests/unit/test_crypto_service.py::test_dado_adulterado_e_detectado PASSED [ 72%]
+tests/unit/test_crypto_service.py::test_registro_legado_em_texto_continua_legivel PASSED [ 76%]
+tests/unit/test_domain.py::test_desacolhimento_com_sucesso PASSED        [ 80%]
+tests/unit/test_domain.py::test_desacolhimento_com_data_anterior_a_admissao_deve_falhar PASSED [ 84%]
+tests/unit/test_domain.py::test_desacolhimento_de_acolhido_ja_desligado_deve_falhar PASSED [ 88%]
+tests/unit/test_domain.py::test_atualizar_dados_validos PASSED           [ 92%]
+tests/unit/test_domain.py::test_criar_evolucao_com_tipo_invalido_deve_falhar PASSED [ 96%]
+tests/unit/test_domain.py::test_criar_evolucao_com_texto_curto_deve_falhar PASSED [100%]
+
+=============================== warnings summary ===============================
+../../../../tmp/venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /tmp/venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/claude/sistema-acolhimento/docs/evidencias/2026-11-17/pytest_v1.0.1-RC.xml -
+======================== 25 passed, 1 warning in 4.87s =========================

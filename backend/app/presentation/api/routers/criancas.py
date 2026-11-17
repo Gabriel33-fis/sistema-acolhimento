@@ -27,6 +27,19 @@ from app.presentation.api.schemas import (
 )
 from app.presentation.api.dependencies import obter_utilizador_atual
 
+
+def negar_acesso(db: Session, operador: dict, request: Request, recurso_id: str, acao: str, mensagem: str):
+    """Registra a tentativa negada na trilha de auditoria e responde 403."""
+    SQLAuditLogger(db).registrar(
+        operador_id=operador.get("id", "desconhecido"),
+        acao="ACESSO_NEGADO",
+        recurso="CRIANCA",
+        recurso_id=recurso_id,
+        ip_origem=request.client.host if request.client else "127.0.0.1",
+        detalhes=f"{acao} negado para o perfil {operador.get('perfil')}",
+    )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=mensagem)
+
 router = APIRouter(prefix="/api/v1/criancas", tags=["Crianças"])
 
 CHAVE_PADRAO = os.getenv("CRYPTO_KEY_HEX", "00" * 32)
@@ -107,14 +120,13 @@ def obter_detalhes_crianca(
     crianca_id: str,
     request: Request,
     operador: dict = Depends(obter_utilizador_atual),
-    use_case: ConsultarCriancaDetalheUseCase = Depends(obter_caso_uso_detalhe)
+    use_case: ConsultarCriancaDetalheUseCase = Depends(obter_caso_uso_detalhe),
+    db: Session = Depends(get_db)
 ):
     perfis_autorizados = ["COORDENADOR", "MEDICO"]
     if operador.get("perfil") not in perfis_autorizados:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso negado: seu perfil não tem permissão para acessar o prontuário médico confidencial."
-        )
+        negar_acesso(db, operador, request, crianca_id, "CONSULTA_DETALHE_PRONTUARIO",
+                     "Acesso negado: seu perfil não tem permissão para acessar o prontuário médico confidencial.")
 
     ip_origem = request.client.host if request.client else "127.0.0.1"
     detalhes = use_case.execute(crianca_id=crianca_id, operador_id=operador["id"], ip_origem=ip_origem)
@@ -128,13 +140,12 @@ def atualizar_crianca(
     payload: CriancaEntradaSchema,
     request: Request,
     operador: dict = Depends(obter_utilizador_atual),
-    use_case: AtualizarCriancaUseCase = Depends(obter_caso_uso_atualizar)
+    use_case: AtualizarCriancaUseCase = Depends(obter_caso_uso_atualizar),
+    db: Session = Depends(get_db)
 ):
     if operador.get("perfil") != "COORDENADOR":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas coordenadores podem editar dados cadastrais de acolhidos."
-        )
+        negar_acesso(db, operador, request, crianca_id, "EDICAO_CADASTRAL",
+                     "Apenas coordenadores podem editar dados cadastrais de acolhidos.")
 
     ip_origem = request.client.host if request.client else "127.0.0.1"
     try:
@@ -157,13 +168,12 @@ def desligar_crianca(
     payload: DesligamentoEntradaSchema,
     request: Request,
     operador: dict = Depends(obter_utilizador_atual),
-    use_case: DesacolherCriancaUseCase = Depends(obter_caso_uso_desligamento)
+    use_case: DesacolherCriancaUseCase = Depends(obter_caso_uso_desligamento),
+    db: Session = Depends(get_db)
 ):
     if operador.get("perfil") != "COORDENADOR":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas coordenadores podem registrar o desligamento de acolhidos."
-        )
+        negar_acesso(db, operador, request, crianca_id, "DESLIGAMENTO",
+                     "Apenas coordenadores podem registrar o desligamento de acolhidos.")
 
     ip_origem = request.client.host if request.client else "127.0.0.1"
     try:

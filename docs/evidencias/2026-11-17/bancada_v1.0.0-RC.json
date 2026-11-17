@@ -1,0 +1,167 @@
+{
+  "executado_em_utc": "2026-11-17T12:23:23+00:00",
+  "api": "http://localhost:8001",
+  "versao": {
+    "status": "ok",
+    "mensagem": "Sistema operacional",
+    "versao": "1.0.0-RC",
+    "commit": "local",
+    "ambiente": "demonstracao-dados-ficticios"
+  },
+  "casos": {
+    "CT-S01": {
+      "verificacoes": [
+        {
+          "verificacao": "Operador: detalhe com dados de saúde",
+          "esperado": 403,
+          "obtido": 403,
+          "passou": true,
+          "detalhe": "Acesso negado: seu perfil não tem permissão para acessar o prontuário médico confidencial."
+        },
+        {
+          "verificacao": "Operador: edição cadastral",
+          "esperado": 403,
+          "obtido": 403,
+          "passou": true,
+          "detalhe": "Apenas coordenadores podem editar dados cadastrais de acolhidos."
+        },
+        {
+          "verificacao": "Operador: desligamento",
+          "esperado": 403,
+          "obtido": 403,
+          "passou": true,
+          "detalhe": "Apenas coordenadores podem registrar o desligamento de acolhidos."
+        },
+        {
+          "verificacao": "Operador: cadastro de usuário",
+          "esperado": 403,
+          "obtido": 403,
+          "passou": true,
+          "detalhe": "Apenas coordenadores podem registar novos utilizadores."
+        },
+        {
+          "verificacao": "Operador: listar equipe",
+          "esperado": 403,
+          "obtido": 403,
+          "passou": true,
+          "detalhe": "Apenas coordenadores podem listar a equipe."
+        },
+        {
+          "verificacao": "Sem token: listagem",
+          "esperado": 401,
+          "obtido": 401,
+          "passou": true,
+          "detalhe": "Not authenticated"
+        },
+        {
+          "verificacao": "Sem token: detalhe",
+          "esperado": 401,
+          "obtido": 401,
+          "passou": true,
+          "detalhe": "Not authenticated"
+        },
+        {
+          "verificacao": "Coordenador: detalhe (controle positivo)",
+          "esperado": 200,
+          "obtido": 200,
+          "passou": true,
+          "detalhe": null
+        },
+        {
+          "verificacao": "Operador: texto de evolução médica oculto",
+          "esperado": "oculto",
+          "obtido": "visível",
+          "passou": false
+        }
+      ],
+      "passou": false
+    },
+    "CT-S02": {
+      "valor_armazenado_alergia": "xE/lzEUPxeFyRAjk:kwN1TPeczfIy99lvAZY5whv9tnmwAaSTU2O/f73+qaMD6PwgnvTrSA2QaB4WBYw=",
+      "valores_armazenados_evolucao_medica": [
+        "Axfn2SK1SLsRBWga:Q5qQ7w5M7HKn5WTSUJc+p/kedYrpSjpO7XjdWz7D4sNCoLW4fbwaUjEdWXODAQ=="
+      ],
+      "texto_original_encontrado_no_banco": false,
+      "passou": true
+    },
+    "CT-S03": {
+      "registros_por_acao_desde_o_inicio": {
+        "ADMISSAO_CRIANCA": 50,
+        "CONSULTA_DETALHE_PRONTUARIO": 1,
+        "CRIAR_EVOLUCAO": 1
+      },
+      "ultimos_registros": [
+        [
+          "2026-11-17 12:23:24.888989",
+          "24ef5c4c-6424-4b66-a8ff-08ee30d8cdcc",
+          "CRIAR_EVOLUCAO",
+          "EVOLUCAO",
+          "4998d243-18b5-46a4-a45e-7e841fc2e495",
+          "127.0.0.1"
+        ],
+        [
+          "2026-11-17 12:23:24.879904",
+          "24ef5c4c-6424-4b66-a8ff-08ee30d8cdcc",
+          "CONSULTA_DETALHE_PRONTUARIO",
+          "CRIANCA",
+          "6448d275-ec8c-4cb8-8d41-1b90bde633cc",
+          "127.0.0.1"
+        ],
+        [
+          "2026-11-17 12:23:24.863691",
+          "24ef5c4c-6424-4b66-a8ff-08ee30d8cdcc",
+          "ADMISSAO_CRIANCA",
+          "CRIANCA",
+          "20dbf06c-6b55-4e6e-8bf8-b9a8f726b2ba",
+          "127.0.0.1"
+        ],
+        [
+          "2026-11-17 12:23:24.856787",
+          "24ef5c4c-6424-4b66-a8ff-08ee30d8cdcc",
+          "ADMISSAO_CRIANCA",
+          "CRIANCA",
+          "7802f5e3-8d51-4f52-898e-b8d5685d1e71",
+          "127.0.0.1"
+        ],
+        [
+          "2026-11-17 12:23:24.850935",
+          "24ef5c4c-6424-4b66-a8ff-08ee30d8cdcc",
+          "ADMISSAO_CRIANCA",
+          "CRIANCA",
+          "ae43cd60-1a00-4fc1-8443-ea1a04a5c6c6",
+          "127.0.0.1"
+        ]
+      ],
+      "tentativas_403_em_rotas_de_acolhidos": 3,
+      "registros_ACESSO_NEGADO_na_auditoria": 0,
+      "campos_registrados": [
+        "timestamp (UTC)",
+        "operador_id",
+        "acao",
+        "recurso",
+        "recurso_id",
+        "ip_origem",
+        "detalhes"
+      ],
+      "observacao": "As rotas de gestão de usuários (auth) ainda não registram tentativas negadas.",
+      "passou": false
+    },
+    "CT-D01": {
+      "conexoes": 10,
+      "duracao_s": 30,
+      "requisicoes": 6407,
+      "sucesso_200_pct": 100.0,
+      "erros_5xx_ou_conexao_pct": 0.0,
+      "latencia_ms": {
+        "media": 46.8,
+        "p50": 18.0,
+        "p90": 94.4,
+        "p95": 157.5,
+        "max": 2367.6
+      },
+      "criterio": "p95 < 1500 ms e 0% de erros 5xx",
+      "passou": true
+    }
+  },
+  "massa_ficticia_criada": 50
+}
