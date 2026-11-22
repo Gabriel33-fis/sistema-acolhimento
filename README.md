@@ -85,6 +85,14 @@ backend/
 ---
 
 ## 🚀 Como Executar o Projeto Localmente
+---
+
+### Pré-requisitos
+- Python 3.12 ou superior
+- Node.js 18 ou superior e npm
+- Git
+
+---
 
 ### Opção 1: Via Docker Compose (Recomendado)
 
@@ -105,9 +113,13 @@ docker compose up --build -d
 
 ```bash
 cd backend
+# Criar e ativar o ambiente virtual
 python -m venv .venv
-source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+# No Windows: .venv\Scripts\activate
+source .venv/bin/activate  
+# Instalar dependências
 pip install -r requirements.txt
+# Executar o servidor FastAPI
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -115,7 +127,9 @@ uvicorn app.main:app --reload --port 8000
 
 ```bash
 cd frontend
+# Instalar pacotes
 npm install
+# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
@@ -123,4 +137,4 @@ npm run dev
 
 ## 📄 Licença
 
-Este projeto é desenvolvido no âmbito acadêmico para o Projeto Integrador IV.
+Este projeto é desenvolvido no âmbito acadêmico para o Projeto Integrador III.
