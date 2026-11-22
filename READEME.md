@@ -128,4 +128,4 @@ npm run dev
 
 ## 📄 Licença
 
-Este projeto é desenvolvido no âmbito acadêmico para o **Projeto Integrador IV**.
+Este projeto é desenvolvido no âmbito acadêmico para o **Projeto Integrador III**.

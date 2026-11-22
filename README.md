@@ -85,6 +85,14 @@ backend/
 ---
 
 ## 🚀 Como Executar o Projeto Localmente
+---
+
+### Pré-requisitos
+- Python 3.12 ou superior
+- Node.js 18 ou superior e npm
+- Git
+
+---
 
 ### Opção 1: Via Docker Compose (Recomendado)
 
@@ -123,4 +131,4 @@ npm run dev
 
 ## 📄 Licença
 
-Este projeto é desenvolvido no âmbito acadêmico para o Projeto Integrador IV.
+Este projeto é desenvolvido no âmbito acadêmico para o Projeto Integrador III.
