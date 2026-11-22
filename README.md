@@ -113,9 +113,13 @@ docker compose up --build -d
 
 ```bash
 cd backend
+# Criar e ativar o ambiente virtual
 python -m venv .venv
-source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+# No Windows: .venv\Scripts\activate
+source .venv/bin/activate  
+# Instalar dependências
 pip install -r requirements.txt
+# Executar o servidor FastAPI
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -123,7 +127,9 @@ uvicorn app.main:app --reload --port 8000
 
 ```bash
 cd frontend
+# Instalar pacotes
 npm install
+# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
